@@ -1,0 +1,11 @@
+{% raw %}{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "{% endraw %}{{ project_name }}{% raw %}" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Hi, I'm {% endraw %}{{ project_name }}{% raw %}" %}</h1>
+<div id="container"></div>
+{% load render_bundle %}
+{% render_bundle 'root' %}
+{% endblock %}{% endraw %}

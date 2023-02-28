@@ -1,0 +1,34 @@
+
+# inputs
+project_name:
+  type: str
+  help: The name of the project.
+  validator: >-
+    {% if not (project_name | regex_search('^[a-z][a-z0-9\-]+$')) %}
+    project_name must start with a letter, followed one or more letters, digits or dashes all lowercase.
+    {% endif %}
+
+repository:
+  type: str
+  help: The URL of the project
+  default: "https://github.com/mitodl/{{ project_name|replace('_', '-') }}"
+
+port: 
+  type: int
+  help: The external port nginx.
+
+web_port:
+  type: int
+  help: The internal port the web app runs on.
+  default: "{{ port + 1 }}"
+
+# copier config
+_subdirectory: "template"
+_templates_suffix: ""
+
+_tasks:
+  - "git init"
+  - "cp -n .env.example .env"
+  - "test -f requirements.txt || touch requirements.txt"
+  - "docker compose build"
+  - "docker compose run --no-deps web pip-compile --resolver=backtracking requirements.in"

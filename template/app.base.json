@@ -1,0 +1,113 @@
+{
+  "addons": [
+    "heroku-postgresql:hobby-dev",
+    "newrelic:wayne",
+    "rediscloud:30"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-apt"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-python"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-pgbouncer"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nginx"
+    }
+  ],
+  "description": "",
+  "env": {
+    "AWS_ACCESS_KEY_ID": {
+      "description": "AWS Access Key for S3 storage."
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "AWS Secret Key for S3 storage."
+    },
+    "AWS_STORAGE_BUCKET_NAME": {
+      "description": "S3 Bucket name."
+    },
+    "DB_CONN_MAX_AGE": {
+      "value": "0"
+    },
+    "DB_DISABLE_SSL": {
+      "value": "true"
+    },
+    "ENVIRONMENT": {
+      "description": "The execution environment that the app is in (e.g. dev, staging, prod)"
+    },
+    "MITOL_ADMIN_EMAIL": {
+      "description": "E-mail to send 500 reports to."
+    },
+    "MITOL_LOG_LEVEL": {
+      "description": "The logging level for the application",
+      "required": true,
+      "value": "INFO"
+    },
+    "MITOL_SUPPORT_EMAIL": {
+      "description": "Email address listed for customer support"
+    },
+    "NEW_RELIC_APP_NAME": {
+      "description": "Application identifier in New Relic."
+    },
+    "NODE_MODULES_CACHE": {
+      "description": "If false, disables the node_modules cache to fix yarn install",
+      "value": "false"
+    },
+    "PGBOUNCER_DEFAULT_POOL_SIZE": {
+      "value": "50"
+    },
+    "PGBOUNCER_MIN_POOL_SIZE": {
+      "value": "5"
+    },
+    "ROBOTS_CACHE_TIMEOUT": {
+      "description": "How long the robots.txt file should be cached",
+      "required": false
+    },
+    "SECRET_KEY": {
+      "description": "Django secret key.",
+      "generator": "secret"
+    },
+    "SENTRY_DSN": {
+      "description": "The connection settings for Sentry"
+    },
+    "SENTRY_LOG_LEVEL": {
+      "description": "The log level for Sentry",
+      "required": false
+    },
+    "SECURE_SSL_REDIRECT": {
+      "description": "Application-level SSL redirect setting.",
+      "required": false,
+      "value": "True"
+    },
+    "SITE_ID": {
+      "description": "The default site id for django sites framework",
+      "required": false
+    },
+    "STATUS_TOKEN": {
+      "description": "Token to access the status API."
+    },
+    "STORAGE_USE_S3": {
+      "description": "Use S3 for storage backend (required on Heroku)",
+      "value": "True"
+    }
+  },
+  "keywords": [
+    "Django",
+    "Python",
+    "MIT",
+    "Office of Digital Learning"
+  ],
+  "name": "{{ project_name }}",
+  "repository": "{{ repository }}",
+  "scripts": {
+    "postdeploy": "./manage.py migrate --noinput"
+  },
+  "success_url": "/",
+  "website": "{{ repository }}"
+}

@@ -1,0 +1,116 @@
+version: '3.6'
+
+x-environment:
+  &py-environment
+  CELERY_TASK_ALWAYS_EAGER: 'False'
+  DATABASE_URL: postgres://postgres@db:5432/postgres
+  DB_DISABLE_SSL: 'True'
+  DEBUG: 'False'
+  DOCKER_HOST: ${DOCKER_HOST:-missing}
+  ELASTICSEARCH_URL: elastic:9200
+  MITOL_DIGITAL_CREDENTIALS_HMAC_SECRET: test-hmac-secret
+  MITOL_ADMIN_EMAIL: admin@localhost
+  NODE_ENV: 'development'
+  REDIS_URL: redis://redis:6379/4
+  SECRET_KEY: local_unsafe_key
+  SECURE_SSL_REDIRECT: 'False'
+  SITE_BASE_URL: ${SITE_BASE_URL:-http://{{ project_name }}.odl.local:{{ port }}}
+
+services:
+  db:
+    image: postgres:11.6
+    ports:
+      - "5432"
+
+  redis:
+    image: redis:5.0.5
+    ports:
+      - "6379"
+      
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "{{ port }}:{{ port }}"
+    links:
+      - web
+    volumes:
+      - ./config/nginx.conf.erb:/etc/nginx/templates/nginx.conf.erb
+      - ./:/app
+    environment:
+      PORT: "{{ port }}"
+      NGINX_UWSGI_PASS: "web:{{ web_port }}"
+  
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: django-server
+    command: >
+      /bin/bash -c '
+      sleep 3 &&
+      python3 manage.py collectstatic --noinput &&
+      python3 manage.py migrate --noinput &&
+      uwsgi uwsgi.ini --honour-stdin'
+    stdin_open: true
+    tty: true
+    ports:
+      - "{{ web_port }}:{{ web_port }}"
+    environment:
+      << : *py-environment
+      PORT: "{{ web_port }}"
+      DEV_ENV: 'True'  # necessary to have nginx connect to web container
+    env_file: .env
+    links:
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - django_media:/var/media
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: django
+    environment: *py-environment
+    env_file: .env
+    command: >
+      /bin/bash -c '
+      sleep 3;
+      celery -A main.celery:app worker -B -l ${MITOL_LOG_LEVEL:-INFO}'
+    links:
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - django_media:/var/media
+
+  # non-application tools
+
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: jupyter-notebook
+    volumes:
+      - .:/app
+    environment:
+      << : *py-environment
+      BASE_DJANGO_APP_NAME: main
+      DEBUG: "False"
+    env_file: .env
+    command: >
+      /bin/bash -c "
+      sleep 3 &&
+      jupyter notebook --no-browser --ip=0.0.0.0 --port=8080 --NotebookApp.token='' --NotebookApp.password\''"
+    ports:
+      - "8080:8080"
+    links:
+      - db
+      - redis
+    profiles: ["notebook"]
+
+volumes:
+  django_media: {}
+  yarn-cache: {}
