@@ -75,7 +75,7 @@ jobs:
           DEBUG: 'False'
 
       - name: Upload coverage to CodeCov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
